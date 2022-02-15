@@ -17,6 +17,10 @@
         group: root
         mode: u+rwX,g+rwX,o=rX
 
+    - name: Install passlib python package (required for htpasswd)
+      pip:
+        name: passlib[bcrypt]
+
     - name: Copy the node_exporter config file
       template:
         src: config.yaml.j2
