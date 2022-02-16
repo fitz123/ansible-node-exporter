@@ -34,6 +34,36 @@
     ( node_exporter_http_server_config | length > 0 ) or
     ( node_exporter_basic_auth_users | length > 0 )
 
+- block:
+    - name: Ensure group "certreader" exists
+      ansible.builtin.group:
+        name: certreader
+        state: present
+    - name: Ensure node-exp user into certreader group
+      ansible.builtin.user:
+        name: "{{ _node_exporter_system_group }}"
+        groups: certreader
+        append: yes
+    - name: Ensure cert directories are readable for certreader group
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: root
+        group: certreader
+        mode: 0750
+      with_items:
+        - /etc/ssl/own
+        - /etc/ssl/private
+    - name: Ensure cert and key are readable for certreader group
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: root
+        group: certreader
+        mode: 0640
+      with_items:
+        - "{{ node_exporter_tls_server_config.cert_file }}"
+        - "{{ node_exporter_tls_server_config.key_file }}"
+  when: node_exporter_tls_server_config | length > 0
+
 - name: Create textfile collector dir
   file:
     path: "{{ node_exporter_textfile_dir }}"
